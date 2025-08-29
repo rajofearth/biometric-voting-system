@@ -51,6 +51,7 @@ export const auth = betterAuth({
           return `${phoneNumber.replace(/[^0-9]/g, '')}@temp.sunx.com`;
         },
         getTempName: (phoneNumber) => {
+          // We'll update this with the actual name from the form
           return `User ${phoneNumber}`;
         },
       },

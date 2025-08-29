@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 export default function FaceVerifyClient() {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
   const [loading, setLoading] = useState(false);
+  const [verificationComplete, setVerificationComplete] = useState(false);
   const router = useRouter();
 
   const onReady = useCallback(async (v: HTMLVideoElement) => {
@@ -38,7 +39,12 @@ export default function FaceVerifyClient() {
       }
       if (res.success) {
         toast.success(`Face verified! Distance: ${res.similarity.toFixed(4)}`);
-        router.push("/dashboard");
+        // Mark verification as complete
+        setVerificationComplete(true);
+        // Navigate to dashboard after a short delay
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1500);
       } else {
         toast.error(`Face mismatch. Distance: ${res.similarity.toFixed(4)}. Try again.`);
       }
@@ -50,8 +56,21 @@ export default function FaceVerifyClient() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-2xl font-semibold">Face Verification</h1>
-      <FaceCamera onReady={onReady} className="w-[320px] h-[240px] rounded-lg border" />
-      <Button onClick={onVerify} disabled={loading}>
+      {!verificationComplete && (
+        <FaceCamera 
+          onReady={onReady} 
+          className="w-[320px] h-[240px] rounded-lg border" 
+        />
+      )}
+      {verificationComplete && (
+        <div className="w-[320px] h-[240px] rounded-lg border bg-green-500/20 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-green-500 font-semibold">✓ Verification Successful!</p>
+            <p className="text-sm text-muted-foreground">Redirecting to dashboard...</p>
+          </div>
+        </div>
+      )}
+      <Button onClick={onVerify} disabled={loading || verificationComplete}>
         {loading ? "Verifying..." : "Verify"}
       </Button>
       <p className="text-sm text-muted-foreground">Ensure good lighting and keep your face centered.</p>

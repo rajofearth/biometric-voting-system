@@ -4,18 +4,42 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Phone, Shield } from "lucide-react";
+import { Loader2, Phone, Shield, User, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { updateUserDetails } from "@/app/auth/action";
 import { useRouter } from "next/navigation";
 
 export default function SignUp() {
+  const [name, setName] = useState("");
+  const [aadharNumber, setAadharNumber] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
-  const [step, setStep] = useState<"phone" | "otp">("phone");
+  const [step, setStep] = useState<"details" | "phone" | "otp">("details");
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const router = useRouter();
+
+  const handleNextToPhone = () => {
+    if (!name.trim()) {
+      toast.error("Please enter your name");
+      return;
+    }
+
+    if (!aadharNumber.trim()) {
+      toast.error("Please enter your Aadhar number");
+      return;
+    }
+
+    // Validate Aadhar number (12 digits)
+    const aadharRegex = /^\d{12}$/;
+    if (!aadharRegex.test(aadharNumber.replace(/\s/g, ""))) {
+      toast.error("Please enter a valid 12-digit Aadhar number");
+      return;
+    }
+
+    setStep("phone");
+  };
 
   const handleSendOTP = async () => {
     if (!phoneNumber.trim()) {
@@ -72,8 +96,19 @@ export default function SignUp() {
       });
 
       if (isVerified) {
-        toast.success("Account created successfully!");
-        router.push("/dashboard");
+        // Update user details with name and Aadhar number
+        const updateResult = await updateUserDetails({
+          name: name.trim(),
+          aadharNumber: aadharNumber.trim(),
+          phoneNumber: phoneNumber.trim(),
+        });
+
+        if (updateResult?.error) {
+          toast.error(updateResult.error);
+        } else {
+          toast.success("Account created successfully!");
+          router.push("/dashboard");
+        }
       } else {
         toast.error("Invalid OTP code. Please try again.");
       }
@@ -124,6 +159,10 @@ export default function SignUp() {
     setStep("phone");
     setOtp("");
     setCountdown(0);
+  };
+
+  const handleBackToDetails = () => {
+    setStep("details");
   };
 
   if (step === "otp") {
@@ -184,37 +223,98 @@ export default function SignUp() {
     );
   }
 
+  if (step === "phone") {
+    return (
+      <div className="space-y-4">
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+            <Phone className="h-6 w-6 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold">Enter Phone Number</h3>
+          <p className="text-sm text-muted-foreground">
+            We'll send a verification code to your phone
+          </p>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="phone">Phone Number</Label>
+          <Input
+            id="phone"
+            type="tel"
+            placeholder="+1234567890"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            className="text-center bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-border"
+          />
+        </div>
+        
+        <Button
+          onClick={handleSendOTP}
+          disabled={loading || !phoneNumber.trim()}
+          className="w-full"
+        >
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Send Verification Code
+        </Button>
+
+        <Button
+          variant="ghost"
+          onClick={handleBackToDetails}
+          disabled={loading}
+          className="w-full text-muted-foreground hover:text-foreground"
+        >
+          ← Back to Details
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="text-center">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-          <Phone className="h-6 w-6 text-primary" />
+          <User className="h-6 w-6 text-primary" />
         </div>
-        <h3 className="text-lg font-semibold">Sign Up with Phone</h3>
+        <h3 className="text-lg font-semibold">Create Your Account</h3>
         <p className="text-sm text-muted-foreground">
-          Enter your phone number to create an account
+          Enter your details to get started
         </p>
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="phone">Phone Number</Label>
+        <Label htmlFor="name">Full Name</Label>
         <Input
-          id="phone"
-          type="tel"
-          placeholder="+1234567890"
-          value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
-          className="text-center bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-border"
+          id="name"
+          type="text"
+          placeholder="Enter your full name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-border"
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="aadhar">Aadhar Number</Label>
+        <Input
+          id="aadhar"
+          type="text"
+          placeholder="123456789012"
+          value={aadharNumber}
+          onChange={(e) => setAadharNumber(e.target.value.replace(/\D/g, "").slice(0, 12))}
+          maxLength={12}
+          className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-border"
+        />
+        <p className="text-xs text-muted-foreground">
+          12-digit Aadhar number without spaces
+        </p>
       </div>
       
       <Button
-        onClick={handleSendOTP}
-        disabled={loading || !phoneNumber.trim()}
+        onClick={handleNextToPhone}
+        disabled={!name.trim() || !aadharNumber.trim() || aadharNumber.length !== 12}
         className="w-full"
       >
-        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Send Verification Code
+        Next
       </Button>
     </div>
   );

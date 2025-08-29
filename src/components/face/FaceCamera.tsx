@@ -11,12 +11,22 @@ export default function FaceCamera({ onReady, className }: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+      });
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  }, []);
+
   const startCamera = useCallback(async () => {
     try {
       // Stop any existing stream first
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
+      stopCamera();
 
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
@@ -44,18 +54,15 @@ export default function FaceCamera({ onReady, className }: Props) {
     } catch (error) {
       console.error("Failed to start camera:", error);
     }
-  }, [onReady]);
+  }, [onReady, stopCamera]);
 
   useEffect(() => {
     startCamera();
 
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-      }
+      stopCamera();
     };
-  }, [startCamera]);
+  }, [startCamera, stopCamera]);
 
   return <video ref={videoRef} className={className} playsInline muted autoPlay />;
 }
