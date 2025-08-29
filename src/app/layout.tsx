@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sunx",
-  description: "Sunx - Secure Authentication",
+  title: "BVS",
+  description: "BVS - Secure Voting System",
 };
 
 export default function RootLayout({
