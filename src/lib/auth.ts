@@ -63,9 +63,9 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
-      aadharNumber: true,
-      phoneNumber: true,
-      phoneVerified: true,
+      aadharNumber: { type: "string" },
+      phoneNumber: { type: "string" },
+      phoneVerified: { type: "boolean" },
     },
   },
   plugins: [nextCookies()],

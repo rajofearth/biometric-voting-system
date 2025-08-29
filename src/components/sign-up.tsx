@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useTransition, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { signUpWithAadhar, verifyOTP } from "@/app/auth/action";
+import { signUpWithAadhar, verifyOTP, createUserAfterOTP } from "@/app/auth/action";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -42,8 +42,20 @@ export default function SignUp() {
 			if (result?.error) {
 				toast.error(result.error);
 			} else if (result?.success) {
-				toast.success("Account created successfully!");
-				router.push("/face/enroll");
+				// After OTP verification, create the user account
+				const userFormData = new FormData();
+				userFormData.append("aadharNumber", aadharNumber);
+				userFormData.append("name", name);
+				userFormData.append("phoneNumber", phoneNumber);
+				
+				const userResult = await createUserAfterOTP({}, userFormData);
+				
+				if (userResult?.error) {
+					toast.error(userResult.error);
+				} else if (userResult?.success) {
+					toast.success("Account created successfully!");
+					router.push("/face/enroll");
+				}
 			}
 		});
 	};

@@ -1,279 +1,121 @@
-# Sunx - Next.js Authentication Template
+# Biometric Voting System
 
-A modern, production-ready authentication template built with Next.js 15, Better Auth, Prisma ORM, and shadcn/ui components.
-<div align="center">
-  <img src="https://github.com/user-attachments/assets/1cde1a61-5b6d-4ef7-a912-a90f81b9dda2" alt="Sign In Page" width="300" height="200" style="border-radius: 8px; margin: 8px;" />
-  <img src="https://github.com/user-attachments/assets/a5d9f67a-da94-483d-bae0-a585c67c9feb" alt="Sign Up Page" width="300" height="200" style="border-radius: 8px; margin: 8px;" />
-  <img src="https://github.com/user-attachments/assets/731c5049-93e8-45ea-b256-bbd57319d41c" alt="Dashboard" width="300" height="200" style="border-radius: 8px; margin: 8px;" />
-</div>
-## ✨ Features
+A secure biometric voting system that uses Aadhar number authentication, OTP verification, and face recognition for voter identification.
 
-- 🔐 **Complete Authentication Flow** - Sign up, sign in, password reset
-- 🎨 **Modern UI** - Beautiful dark theme with glassmorphism effects
-- ⚡ **Next.js 15** - Latest App Router with server actions
-- 🗄️ **Database Ready** - SQLite with Prisma (easy to swap to PostgreSQL)
-- 🔒 **Better Auth** - Secure authentication with session management
-- 📱 **Responsive Design** - Works perfectly on all devices
-- 🎯 **TypeScript** - Full type safety throughout
-- 🎨 **shadcn/ui** - Professional UI components
-- 🔄 **Server Actions** - Form handling with Zod validation
+## Features
 
-## 🚀 Quick Start
+- **Aadhar-based Authentication**: Users sign up and login using their 12-digit Aadhar number
+- **OTP Verification**: SMS-based OTP verification using TextBee API
+- **Face Recognition**: Biometric face verification for secure voting
+- **Modern UI**: Built with Next.js, Tailwind CSS, and shadcn/ui components
 
-### Prerequisites
+## Authentication Flow
 
-- Node.js 18+ 
-- bun, yarn, or pnpm
+### Sign Up Process
+1. User enters their 12-digit Aadhar number
+2. User provides their full name
+3. User enters the phone number linked to their Aadhar
+4. System sends OTP via SMS using TextBee API
+5. User verifies OTP
+6. User enrolls their face for biometric verification
+7. Account is created and user is ready to vote
 
-### 1. Clone and Install
+### Sign In Process
+1. User enters their 12-digit Aadhar number
+2. System sends OTP to the phone number linked to the Aadhar
+3. User verifies OTP
+4. User undergoes face verification
+5. User is authenticated and can access the voting system
 
-```bash
-git clone https://github.com/rajofearth/sunx.git
-cd sunx
-bun install
-```
+## Environment Setup
 
-### 2. Environment Setup
+Create a `.env` file in the root directory with the following variables:
 
-```bash
-cp .env.example .env
-```
-
-Update `.env` with your configuration:
 ```env
-# Database (SQLite by default)
-DATABASE_URL="file:./local.db"
+# Database
+DATABASE_URL="file:./prisma/local.db"
 
-# App URL (no trailing slash)
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
+# TextBee SMS API Configuration
+SMS_API_KEY="your_textbee_api_key_here"
+DEVICE_ID="your_textbee_device_id_here"
+
+# Better Auth Configuration
+BETTER_AUTH_SECRET="your_better_auth_secret_here"
 ```
 
-### 3. Database Setup
+### Getting TextBee API Credentials
 
-```bash
-# Generate Prisma client
-bun run prisma:generate
+1. Sign up at [TextBee](https://textbee.dev)
+2. Get your API key and device ID from the dashboard
+3. Add them to your `.env` file
 
-# Push schema to database
-bun run db:push
-```
+## Installation
 
-### 4. Start Development
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-```bash
-bun dev
-```
+2. Generate Prisma client:
+   ```bash
+   npx prisma generate
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+3. Push database schema:
+   ```bash
+   npx prisma db push
+   ```
 
-## 🏗️ Project Structure
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Tech Stack
+
+- **Framework**: Next.js 15 with App Router
+- **Authentication**: Better Auth with phone number plugin
+- **Database**: SQLite with Prisma ORM
+- **SMS Service**: TextBee API
+- **UI Components**: shadcn/ui with Tailwind CSS
+- **Face Recognition**: face-api.js
+- **Form Validation**: Zod
+- **Notifications**: Sonner
+
+## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── auth/
-│   │   ├── page.tsx              # Auth page (protected from logged-in users)
-│   │   └── action.ts             # Server actions for auth
-│   ├── dashboard/
-│   │   └── page.tsx              # Protected dashboard
-│   ├── forgot-password/
-│   │   └── page.tsx              # Password reset request
-│   ├── reset-password/
-│   │   └── page.tsx              # Password reset form
-│   ├── api/auth/[...all]/
-│   │   └── route.ts              # Better Auth API routes
-│   ├── globals.css               # Global styles & Tailwind
-│   ├── layout.tsx                # Root layout
-│   └── page.tsx                  # Home page (redirects to auth/dashboard)
+│   ├── auth/           # Authentication pages and actions
+│   ├── dashboard/      # Main voting dashboard
+│   ├── face/          # Face enrollment and verification
+│   └── api/           # API routes
 ├── components/
-│   ├── auth-client.tsx           # Auth UI with tabs
-│   ├── sign-in.tsx               # Sign in form
-│   ├── sign-up.tsx               # Sign up form
-│   ├── forgot-password-client.tsx # Forgot password UI
-│   ├── reset-password-client.tsx # Reset password UI
-│   └── ui/                       # shadcn/ui components
-├── lib/
-│   ├── auth.ts                   # Better Auth configuration
-│   ├── auth-client.ts            # Client-side auth utilities
-│   ├── action-helpers.ts         # Server action utilities
-│   ├── types.ts                  # Zod schemas
-│   ├── prisma.ts                 # Prisma client
-│   └── utils.ts                  # Utility functions
-└── generated/
-    └── prisma/                   # Generated Prisma client
+│   ├── ui/            # Reusable UI components
+│   ├── face/          # Face recognition components
+│   └── auth-client.tsx # Main authentication component
+└── lib/
+    ├── auth.ts        # Better Auth configuration
+    ├── types.ts       # TypeScript type definitions
+    └── constants.ts   # Application constants
 ```
 
-## 🔧 Configuration
+## Security Features
 
-### Better Auth Setup
+- **Aadhar Validation**: Ensures unique identification
+- **OTP Verification**: Two-factor authentication via SMS
+- **Face Biometrics**: Additional security layer
+- **Session Management**: Secure session handling with Better Auth
+- **Input Validation**: Comprehensive form validation with Zod
 
-The authentication is configured in `src/lib/auth.ts`:
-
-```typescript
-export const auth = betterAuth({
-  emailAndPassword: {
-    enabled: true,
-    minPasswordLength: 8,
-    maxPasswordLength: 128,
-    async sendResetPassword({ user, url, token }, request) {
-      // TODO: Implement your email sending logic here
-      console.log(`Password reset email for ${user.email}: ${url}`);
-    },
-  },
-  database: prismaAdapter(prisma, {
-    provider: "sqlite",
-  }),
-  session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-  },
-  plugins: [nextCookies()],
-});
-```
-
-### Database Schema
-
-The Prisma schema includes all necessary tables for Better Auth:
-
-- **User** - User information and authentication data
-- **Session** - User sessions for authentication
-- **Account** - OAuth and credential accounts
-- **Verification** - Email verification tokens
-
-## 🎨 Customization
-
-### Styling
-
-The template uses Tailwind CSS v4 with a custom dark theme. Customize by modifying:
-
-- `src/app/globals.css` - Global styles and CSS variables
-- Component-specific classes in the components
-- The theme uses CSS variables for easy customization
-
-### Email Provider
-
-To enable email functionality (password reset, verification), implement the email sending functions in `src/lib/auth.ts`:
-
-```typescript
-async sendResetPassword({ user, url, token }, request) {
-  // Example with Resend
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: 'noreply@yourdomain.com',
-      to: user.email,
-      subject: 'Reset your password',
-      html: `<a href="${url}">Reset Password</a>`,
-    }),
-  });
-}
-```
-
-Popular email providers:
-- [Resend](https://resend.com) - Developer-friendly email API
-- [SendGrid](https://sendgrid.com) - Enterprise email service
-- [Postmark](https://postmarkapp.com) - Transactional email
-- [AWS SES](https://aws.amazon.com/ses/) - Amazon's email service
-
-## 🚀 Deployment
-
-### Environment Variables
-
-Set these in your production environment:
-
-```env
-DATABASE_URL="your-production-database-url"
-NEXT_PUBLIC_APP_URL="https://your-domain.com"
-```
-
-### Database Migration
-
-For production, consider using PostgreSQL:
-
-1. Update `prisma/schema.prisma`:
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-```
-
-2. Update the auth configuration:
-```typescript
-database: prismaAdapter(prisma, {
-  provider: "postgresql",
-}),
-```
-
-3. Deploy your database and run migrations:
-```bash
-npx prisma migrate deploy
-```
-
-### Deployment Platforms
-
-This template works with all major deployment platforms:
-
-- **Vercel** - Recommended for Next.js apps
-- **Netlify** - Great for static sites
-- **Railway** - Easy database + app deployment
-- **Render** - Simple deployment with PostgreSQL
-- **AWS/GCP/Azure** - Enterprise deployments
-
-## 🛠️ Development
-
-### Available Scripts
-
-```bash
-bun dev          # Start development server
-bun run build        # Build for production
-bun run start        # Start production server
-bun run typecheck    # TypeScript type checking
-bun run prisma:generate  # Generate Prisma client
-bun run db:push      # Push schema to database
-```
-
-### Adding New Features
-
-1. **New Pages**: Add to `src/app/` following the existing pattern
-2. **Components**: Create in `src/components/` with proper TypeScript
-3. **Server Actions**: Use the `validatedAction` helper in `src/lib/action-helpers.ts`
-4. **Database**: Add models to `prisma/schema.prisma`
-
-## 🔒 Security Features
-
-- **Password Hashing** - Uses scrypt for secure password hashing
-- **Session Management** - Secure session handling with expiration
-- **Input Validation** - Zod schemas for all form inputs
-- **CSRF Protection** - Built-in CSRF protection with Better Auth
-- **Rate Limiting** - Configurable rate limiting for auth endpoints
-- **Type Safety** - Full TypeScript coverage
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Next.js](https://nextjs.org) - The React framework
-- [Better Auth](https://better-auth.com) - Authentication library
-- [Prisma](https://prisma.io) - Database toolkit
-- [shadcn/ui](https://ui.shadcn.com) - UI components
-- [Tailwind CSS](https://tailwindcss.com) - CSS framework
-
----
-
-**Ready to build something amazing?** 🚀
-
-This template provides a solid foundation for any Next.js application requiring authentication. Just add your business logic and deploy!
+This project is licensed under the MIT License.

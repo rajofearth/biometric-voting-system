@@ -35,10 +35,10 @@ export default async function DashboardPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">
-                Welcome, {session.user.name}!
+                Welcome to Biometric Voting System!
               </h1>
               <p className="text-muted-foreground">
-                You are successfully signed in to Sunx
+                You are successfully authenticated and ready to vote
               </p>
             </div>
             <form action={async () => {
@@ -60,23 +60,25 @@ export default async function DashboardPage() {
           
           <div className="grid gap-6 md:grid-cols-2">
             <div className="bg-muted/50 rounded-lg p-4 border border-border/50">
-              <h3 className="text-lg font-semibold text-foreground mb-2">User Information</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Voter Information</h3>
               <div className="space-y-2 text-muted-foreground">
                 <p><strong>Name:</strong> {session.user.name}</p>
-                <p><strong>Email:</strong> {session.user.email}</p>
+                <p><strong>Aadhar Number:</strong> {session.user.aadharNumber || "Not available"}</p>
+                <p><strong>Phone Number:</strong> {session.user.phoneNumber || "Not available"}</p>
+                <p><strong>Phone Verified:</strong> {session.user.phoneVerified ? "Yes" : "No"}</p>
                 <p><strong>User ID:</strong> {session.user.id}</p>
-                <p><strong>Email Verified:</strong> {session.user.emailVerified ? "Yes" : "No"}</p>
                 <p><strong>Created:</strong> {new Date(session.user.createdAt).toLocaleDateString()}</p>
               </div>
             </div>
             
             <div className="bg-muted/50 rounded-lg p-4 border border-border/50">
-              <h3 className="text-lg font-semibold text-foreground mb-2">Session Information</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Authentication Status</h3>
               <div className="space-y-2 text-muted-foreground">
                 <p><strong>Session ID:</strong> {session.session.id}</p>
                 <p><strong>Expires:</strong> {new Date(session.session.expiresAt).toLocaleString()}</p>
+                <p><strong>Face Enrolled:</strong> {user.faceDescriptor ? "Yes" : "No"}</p>
+                <p><strong>Face Verified:</strong> {isFaceVerified ? "Yes" : "No"}</p>
                 <p><strong>IP Address:</strong> {session.session.ipAddress || "Not available"}</p>
-                <p><strong>User Agent:</strong> {session.session.userAgent || "Not available"}</p>
               </div>
             </div>
           </div>
@@ -84,6 +86,16 @@ export default async function DashboardPage() {
           <div className="mt-6 bg-muted/50 rounded-lg p-4 border border-border/50">
             <h3 className="text-lg font-semibold text-foreground mb-2">Profile Image</h3>
             <AvatarUploader src={session.user.image ?? null} alt="Profile" />
+          </div>
+
+          <div className="mt-6 bg-green-50 dark:bg-green-950/10 rounded-lg p-4 border border-green-200 dark:border-green-800">
+            <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">Ready to Vote</h3>
+            <p className="text-sm text-green-700 dark:text-green-300 mb-4">
+              Your identity has been verified through Aadhar, OTP, and face recognition. You can now proceed to cast your vote.
+            </p>
+            <Button className="bg-green-600 hover:bg-green-700 text-white">
+              Cast Vote
+            </Button>
           </div>
 
           <div className="mt-6 bg-red-50 dark:bg-red-950/10 rounded-lg p-4 border border-red-200 dark:border-red-800">
