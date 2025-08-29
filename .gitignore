@@ -1,0 +1,32 @@
+# Node/Next
+node_modules/
+.next/
+out/
+.vercel/
+.turbo/
+.cache/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+src/generated/
+/prisma/local.db
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+
+# Lockfiles (choose one package manager; keep only one)
+bun.lock
+pnpm-lock.yaml
+yarn.lock
+prisma/local.db
