@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { castVote, verifyVote } from "@/app/voting/action";
+import { castVote } from "@/app/voting/action";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { 
@@ -15,8 +15,6 @@ import {
   Building2, 
   Shield,
   LogOut,
-  Eye,
-  EyeOff,
   BarChart3
 } from "lucide-react";
 
@@ -52,9 +50,7 @@ interface EVMClientProps {
 export default function EVMClient({ votingData }: EVMClientProps) {
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showVoteToken, setShowVoteToken] = useState(false);
   const [votingComplete, setVotingComplete] = useState(false);
-  const [voteToken, setVoteToken] = useState<string | null>(null);
   const router = useRouter();
 
   // Handle sign out
@@ -77,7 +73,6 @@ export default function EVMClient({ votingData }: EVMClientProps) {
       if (result?.error) {
         toast.error(result.error);
       } else if (result?.success) {
-        setVoteToken(result.voteToken);
         setVotingComplete(true);
         toast.success("Vote cast successfully!");
       }
@@ -89,29 +84,7 @@ export default function EVMClient({ votingData }: EVMClientProps) {
     }
   };
 
-  // Handle vote verification
-  const handleVerifyVote = async () => {
-    if (!voteToken) {
-      toast.error("No vote token available");
-      return;
-    }
 
-    setLoading(true);
-    try {
-      const result = await verifyVote({ voteToken });
-      
-      if (result?.error) {
-        toast.error(result.error);
-      } else if (result?.success) {
-        toast.success(`Vote verified! You voted for ${result.data.candidateName} (${result.data.party}) in ${result.data.constituency}, ${result.data.state}`);
-      }
-    } catch (error) {
-      console.error("Error verifying vote:", error);
-      toast.error("Failed to verify vote");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Show error if voting data failed to load
   if (votingData.error) {
@@ -145,42 +118,30 @@ export default function EVMClient({ votingData }: EVMClientProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center">
-              <p className="text-muted-foreground mb-4">
-                Your vote has been recorded securely. You can verify your vote using the token below.
+              <p className="text-muted-foreground mb-6">
+                Your vote has been recorded securely and is being counted. 
+                Thank you for participating in the democratic process.
               </p>
               
-              <div className="bg-muted rounded-lg p-3 mb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-mono text-muted-foreground">Vote Token:</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowVoteToken(!showVoteToken)}
-                  >
-                    {showVoteToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
+              <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 mb-6 border border-green-200 dark:border-green-800">
+                <div className="flex items-center space-x-3">
+                  <Shield className="h-5 w-5 text-green-600" />
+                  <div>
+                    <h4 className="font-semibold text-green-900 dark:text-green-100">Vote Privacy Assured</h4>
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      Your vote is completely anonymous and secure.
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs font-mono break-all mt-2">
-                  {showVoteToken ? voteToken : "••••••••••••••••••••••••••••••••"}
-                </p>
               </div>
 
               <div className="space-y-2">
                 <Button 
-                  onClick={handleVerifyVote} 
-                  disabled={loading}
-                  className="w-full"
-                >
-                  {loading ? "Verifying..." : "Verify My Vote"}
-                </Button>
-                
-                <Button 
                   onClick={handleSignOut} 
-                  variant="outline"
                   className="w-full"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
+                  End Session
                 </Button>
               </div>
             </div>
@@ -356,8 +317,8 @@ export default function EVMClient({ votingData }: EVMClientProps) {
                 <div>
                   <h4 className="font-semibold text-blue-900 dark:text-blue-100">Vote Privacy</h4>
                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                    Your vote is completely anonymous. No one can trace who you voted for. 
-                    You will receive a unique token to verify your vote was recorded.
+                    Your vote is completely anonymous and secure. No one can trace who you voted for. 
+                    Your vote will be counted in the final results.
                   </p>
                 </div>
               </div>
