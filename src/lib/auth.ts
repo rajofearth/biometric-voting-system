@@ -2,6 +2,8 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { PrismaClient } from "@/generated/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { phoneNumber } from "better-auth/plugins";
+import { textbeeService } from "./textbee";
 
 const prisma = new PrismaClient();
 
@@ -29,5 +31,33 @@ export const auth = betterAuth({
       // Add any additional user fields here if needed
     },
   },
-  plugins: [nextCookies()],
+  plugins: [
+    nextCookies(),
+    phoneNumber({
+      sendOTP: async ({ phoneNumber, code }, request) => {
+        const result = await textbeeService.sendOTP(phoneNumber, code);
+        if (!result.success) {
+          throw new Error(`Failed to send OTP: ${result.error}`);
+        }
+      },
+      sendPasswordResetOTP: async ({ phoneNumber, code }, request) => {
+        const result = await textbeeService.sendOTP(phoneNumber, code);
+        if (!result.success) {
+          throw new Error(`Failed to send password reset OTP: ${result.error}`);
+        }
+      },
+      signUpOnVerification: {
+        getTempEmail: (phoneNumber) => {
+          return `${phoneNumber.replace(/[^0-9]/g, '')}@temp.sunx.com`;
+        },
+        getTempName: (phoneNumber) => {
+          return `User ${phoneNumber}`;
+        },
+      },
+      otpLength: 6,
+      expiresIn: 300, // 5 minutes
+      allowedAttempts: 3,
+      requireVerification: true,
+    }),
+  ],
 });

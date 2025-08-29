@@ -24,6 +24,10 @@ model User {
   faceDescriptor   String?
   lastFaceVerified DateTime?
 
+  // Phone number fields
+  phoneNumber        String?  @unique
+  phoneNumberVerified Boolean @default(false)
+
   @@unique([email])
   @@map("user")
 }

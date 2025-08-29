@@ -1,16 +1,36 @@
 "use client";
 
-import * as faceapi from "@vladmandic/face-api";
 import { FACE_DETECTION } from "@/lib/constants";
 
 let modelsLoaded = false;
+let faceapi: any = null;
+
+// Dynamically import face-api only on the client side
+async function getFaceApi() {
+  if (typeof window === 'undefined') {
+    throw new Error('Face API is only available on the client side');
+  }
+  
+  if (!faceapi) {
+    faceapi = await import("@vladmandic/face-api");
+  }
+  
+  return faceapi;
+}
 
 export async function loadModels(base = "/models") {
   if (modelsLoaded) return;
-  await faceapi.nets.tinyFaceDetector.loadFromUri(base);
-  await faceapi.nets.faceLandmark68Net.loadFromUri(base);
-  await faceapi.nets.faceRecognitionNet.loadFromUri(base);
-  modelsLoaded = true;
+  
+  try {
+    const faceApi = await getFaceApi();
+    await faceApi.nets.tinyFaceDetector.loadFromUri(base);
+    await faceApi.nets.faceLandmark68Net.loadFromUri(base);
+    await faceApi.nets.faceRecognitionNet.loadFromUri(base);
+    modelsLoaded = true;
+  } catch (error) {
+    console.error("Error loading face models:", error);
+    throw error;
+  }
 }
 
 export async function computeDescriptor(video: HTMLVideoElement): Promise<number[] | null> {
@@ -21,8 +41,10 @@ export async function computeDescriptor(video: HTMLVideoElement): Promise<number
       return null;
     }
 
-    const detection = await faceapi
-      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ 
+    const faceApi = await getFaceApi();
+    
+    const detection = await faceApi
+      .detectSingleFace(video, new faceApi.TinyFaceDetectorOptions({ 
         inputSize: FACE_DETECTION.INPUT_SIZE, 
         scoreThreshold: FACE_DETECTION.SCORE_THRESHOLD
       }))
