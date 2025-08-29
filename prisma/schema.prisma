@@ -31,6 +31,12 @@ model User {
   // Aadhar number field
   aadharNumber       String?  @unique
 
+  // Voting fields
+  constituencyId     String?
+  constituency       Constituency? @relation(fields: [constituencyId], references: [id])
+  hasVoted          Boolean @default(false)
+  voteToken         String?  @unique // Unique token for vote verification without revealing identity
+
   @@unique([email])
   @@map("user")
 }
@@ -78,4 +84,54 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+// Voting System Models
+model Constituency {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  state       String
+  totalVoters Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  users       User[]
+  candidates  Candidate[]
+  votes       Vote[]
+
+  @@map("constituency")
+}
+
+model Candidate {
+  id            String    @id @default(uuid())
+  name          String
+  party         String
+  symbol        String?   // Party symbol/image
+  photo         String?   // Candidate photo
+  constituencyId String
+  constituency  Constituency @relation(fields: [constituencyId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  votes         Vote[]
+
+  @@unique([constituencyId, name]) // One candidate per constituency
+  @@map("candidate")
+}
+
+model Vote {
+  id            String    @id @default(uuid())
+  voteToken     String    @unique // Links to user's vote token for verification
+  candidateId   String
+  candidate     Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  constituencyId String
+  constituency  Constituency @relation(fields: [constituencyId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  
+  // No direct link to user - maintains vote privacy
+  // Vote can only be verified using the voteToken
+
+  @@map("vote")
 }
