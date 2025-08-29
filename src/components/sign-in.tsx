@@ -22,7 +22,7 @@ export default function SignIn() {
         toast.error(result.error);
       } else if (result?.success) {
         toast.success("Successfully signed in!");
-        router.push("/dashboard");
+        router.push("/face/verify");
       }
     });
   };

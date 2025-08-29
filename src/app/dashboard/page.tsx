@@ -1,7 +1,10 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
+import { prisma } from "@/lib/prisma";
+import AvatarUploader from "@/components/avatar-uploader";
+import { DeleteAccountDialog } from "@/components/delete-account-dialog";
 
 export default async function DashboardPage() {
   const session = await auth.api.getSession({
@@ -10,6 +13,18 @@ export default async function DashboardPage() {
   
   if (!session) {
     redirect("/auth");
+  }
+
+  // Enforce enrollment-first flow and active face verification for this session
+  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { faceDescriptor: true } });
+  if (!user?.faceDescriptor) {
+    redirect("/face/enroll");
+  }
+
+  const c = await cookies();
+  const isFaceVerified = c.get(`fv:${session.session.id}`)?.value === "1";
+  if (!isFaceVerified) {
+    redirect("/face/verify");
   }
 
   return (
@@ -65,16 +80,18 @@ export default async function DashboardPage() {
             </div>
           </div>
           
-          {session.user.image && (
-            <div className="mt-6 bg-muted/50 rounded-lg p-4 border border-border/50">
-              <h3 className="text-lg font-semibold text-foreground mb-2">Profile Image</h3>
-              <img 
-                src={session.user.image} 
-                alt="Profile" 
-                className="w-20 h-20 rounded-full object-cover border-2 border-border/50"
-              />
-            </div>
-          )}
+          <div className="mt-6 bg-muted/50 rounded-lg p-4 border border-border/50">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Profile Image</h3>
+            <AvatarUploader src={session.user.image ?? null} alt="Profile" />
+          </div>
+
+          <div className="mt-6 bg-red-50 dark:bg-red-950/10 rounded-lg p-4 border border-red-200 dark:border-red-800">
+            <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">Danger Zone</h3>
+            <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+              Once you delete your account, there is no going back. Please be certain.
+            </p>
+            <DeleteAccountDialog />
+          </div>
         </div>
       </div>
     </div>

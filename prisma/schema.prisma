@@ -19,6 +19,10 @@ model User {
   image         String?
   sessions      Session[]
   accounts      Account[]
+  
+  // Face verification fields
+  faceDescriptor   String?
+  lastFaceVerified DateTime?
 
   @@unique([email])
   @@map("user")
