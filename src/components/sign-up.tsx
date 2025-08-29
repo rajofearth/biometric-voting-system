@@ -3,112 +3,194 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useTransition } from "react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useTransition, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { signUpEmail } from "@/app/auth/action";
+import { signUpWithAadhar, verifyOTP } from "@/app/auth/action";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export default function SignUp() {
 	const [isPending, startTransition] = useTransition();
+	const [otpSent, setOtpSent] = useState(false);
+	const [phoneNumber, setPhoneNumber] = useState("");
+	const [aadharNumber, setAadharNumber] = useState("");
+	const [name, setName] = useState("");
+	const [otpValue, setOtpValue] = useState("");
 	const router = useRouter();
 
-	const handleSubmit = async (formData: FormData) => {
+	const handleSignUpSubmit = async (formData: FormData) => {
 		startTransition(async () => {
-			const result = await signUpEmail({}, formData);
+			const result = await signUpWithAadhar({}, formData);
+			
+			if (result?.error) {
+				toast.error(result.error);
+			} else if (result?.success) {
+				setPhoneNumber(result.phoneNumber);
+				setAadharNumber(result.aadharNumber);
+				setName(result.name);
+				setOtpSent(true);
+				toast.success(result.message);
+			}
+		});
+	};
+
+	const handleOTPSubmit = async (formData: FormData) => {
+		startTransition(async () => {
+			const result = await verifyOTP({}, formData);
 			
 			if (result?.error) {
 				toast.error(result.error);
 			} else if (result?.success) {
 				toast.success("Account created successfully!");
-				router.push("/dashboard");
+				router.push("/face/enroll");
 			}
 		});
 	};
 
+	const handleResendOTP = async () => {
+		startTransition(async () => {
+			const formData = new FormData();
+			formData.append("aadharNumber", aadharNumber);
+			formData.append("name", name);
+			formData.append("phoneNumber", phoneNumber);
+			
+			const result = await signUpWithAadhar({}, formData);
+			
+			if (result?.error) {
+				toast.error(result.error);
+			} else if (result?.success) {
+				toast.success("OTP resent successfully!");
+			}
+		});
+	};
+
+	if (!otpSent) {
+		return (
+			<form action={handleSignUpSubmit} className="space-y-4">
+				<div className="space-y-2">
+					<Label htmlFor="aadharNumber" className="text-foreground">
+						Aadhar Number
+					</Label>
+					<Input
+						id="aadharNumber"
+						name="aadharNumber"
+						type="text"
+						placeholder="123456789012"
+						maxLength={12}
+						pattern="\d{12}"
+						required
+						className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-border"
+					/>
+					<p className="text-xs text-muted-foreground">
+						Enter your 12-digit Aadhar number
+					</p>
+				</div>
+				
+				<div className="space-y-2">
+					<Label htmlFor="name" className="text-foreground">
+						Full Name
+					</Label>
+					<Input
+						id="name"
+						name="name"
+						type="text"
+						placeholder="Enter your full name"
+						required
+						className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-border"
+					/>
+				</div>
+				
+				<div className="space-y-2">
+					<Label htmlFor="phoneNumber" className="text-foreground">
+						Phone Number
+					</Label>
+					<Input
+						id="phoneNumber"
+						name="phoneNumber"
+						type="tel"
+						placeholder="+91 9876543210"
+						required
+						className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-border"
+					/>
+					<p className="text-xs text-muted-foreground">
+						Enter the phone number linked to your Aadhar
+					</p>
+				</div>
+				
+				<Button
+					type="submit"
+					className="w-full"
+					disabled={isPending}
+				>
+					{isPending ? (
+						<Loader2 size={16} className="animate-spin mr-2" />
+					) : null}
+					Send OTP
+				</Button>
+			</form>
+		);
+	}
+
 	return (
-		<form action={handleSubmit} className="space-y-4">
-			<div className="grid grid-cols-2 gap-4">
+		<div className="space-y-4">
+			<div className="text-center space-y-2">
+				<p className="text-sm text-muted-foreground">
+					OTP sent to {phoneNumber}
+				</p>
+				<Button
+					type="button"
+					variant="link"
+					size="sm"
+					onClick={handleResendOTP}
+					disabled={isPending}
+					className="text-xs"
+				>
+					Resend OTP
+				</Button>
+			</div>
+
+			<form action={handleOTPSubmit} className="space-y-4">
 				<div className="space-y-2">
-					<Label htmlFor="firstName" className="text-foreground">
-						First name
+					<Label htmlFor="otp" className="text-foreground">
+						Enter OTP
 					</Label>
-					<Input
-						id="firstName"
-						name="firstName"
-						placeholder="Max"
-						required
-						className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-border"
+					<InputOTP
+						value={otpValue}
+						onChange={(value) => {
+							setOtpValue(value);
+							// Auto-submit when 6 digits are entered
+							if (value.length === 6) {
+								const formData = new FormData();
+								formData.append("code", value);
+								handleOTPSubmit(formData);
+							}
+						}}
+						maxLength={6}
+						render={({ slots }) => (
+							<InputOTPGroup className="gap-2">
+								{slots.map((slot, index) => (
+									<InputOTPSlot key={index} {...slot} />
+								))}
+							</InputOTPGroup>
+						)}
 					/>
+					<p className="text-xs text-muted-foreground">
+						Enter the 6-digit code sent to your phone
+					</p>
 				</div>
-				<div className="space-y-2">
-					<Label htmlFor="lastName" className="text-foreground">
-						Last name
-					</Label>
-					<Input
-						id="lastName"
-						name="lastName"
-						placeholder="Robinson"
-						required
-						className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-border"
-					/>
-				</div>
-			</div>
-			
-			<div className="space-y-2">
-				<Label htmlFor="email" className="text-foreground">
-					Email
-				</Label>
-				<Input
-					id="email"
-					name="email"
-					type="email"
-					placeholder="m@example.com"
-					required
-					className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-border"
-				/>
-			</div>
-			
-			<div className="space-y-2">
-				<Label htmlFor="password" className="text-foreground">
-					Password
-				</Label>
-				<Input
-					id="password"
-					name="password"
-					type="password"
-					autoComplete="new-password"
-					placeholder="Password"
-					required
-					className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-border"
-				/>
-			</div>
-			
-			<div className="space-y-2">
-				<Label htmlFor="passwordConfirmation" className="text-foreground">
-					Confirm Password
-				</Label>
-				<Input
-					id="passwordConfirmation"
-					name="passwordConfirmation"
-					type="password"
-					autoComplete="new-password"
-					placeholder="Confirm Password"
-					required
-					className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-border"
-				/>
-			</div>
-			
-			<Button
-				type="submit"
-				className="w-full"
-				disabled={isPending}
-			>
-				{isPending ? (
-					<Loader2 size={16} className="animate-spin mr-2" />
-				) : null}
-				Create an account
-			</Button>
-		</form>
+
+				<Button
+					type="submit"
+					className="w-full"
+					disabled={isPending || otpValue.length !== 6}
+				>
+					{isPending ? (
+						<Loader2 size={16} className="animate-spin mr-2" />
+					) : null}
+					Verify OTP & Create Account
+				</Button>
+			</form>
+		</div>
 	);
 }

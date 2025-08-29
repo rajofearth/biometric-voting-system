@@ -14,8 +14,9 @@ model User {
   name          String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  email         String
-  emailVerified Boolean
+  aadharNumber  String    @unique
+  phoneNumber   String
+  phoneVerified Boolean   @default(false)
   image         String?
   sessions      Session[]
   accounts      Account[]
@@ -24,7 +25,6 @@ model User {
   faceDescriptor   String?
   lastFaceVerified DateTime?
 
-  @@unique([email])
   @@map("user")
 }
 
