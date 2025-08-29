@@ -59,5 +59,3 @@ export default function FaceCamera({ onReady, className }: Props) {
 
   return <video ref={videoRef} className={className} playsInline muted autoPlay />;
 }
-
-

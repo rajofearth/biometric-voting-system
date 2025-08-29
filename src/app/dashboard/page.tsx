@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { headers, cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { FACE_VERIFICATION } from "@/lib/constants";
 import AvatarUploader from "@/components/avatar-uploader";
 import { DeleteAccountDialog } from "@/components/delete-account-dialog";
 
@@ -22,7 +23,7 @@ export default async function DashboardPage() {
   }
 
   const c = await cookies();
-  const isFaceVerified = c.get(`fv:${session.session.id}`)?.value === "1";
+  const isFaceVerified = c.get(`${FACE_VERIFICATION.COOKIE_NAME}:${session.session.id}`)?.value === "1";
   if (!isFaceVerified) {
     redirect("/face/verify");
   }

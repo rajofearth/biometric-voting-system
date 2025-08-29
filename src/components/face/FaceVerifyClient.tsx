@@ -31,16 +31,16 @@ export default function FaceVerifyClient() {
       }
       const fd = new FormData();
       fd.set("payload", JSON.stringify({ descriptor: d }));
-      const res = await verifyFace({}, fd) as { success?: boolean; error?: string; similarity?: number };
-      if ((res as any)?.error) {
-        toast.error((res as any).error);
+      const res = await verifyFace({}, fd);
+      if ('error' in res) {
+        toast.error(res.error);
         return;
       }
-      if (res?.success) {
-        toast.success(`Face verified! Distance: ${(res.similarity || 0).toFixed(4)}`);
+      if (res.success) {
+        toast.success(`Face verified! Distance: ${res.similarity.toFixed(4)}`);
         router.push("/dashboard");
       } else {
-        toast.error(`Face mismatch. Distance: ${(res.similarity || 0).toFixed(4)}. Try again.`);
+        toast.error(`Face mismatch. Distance: ${res.similarity.toFixed(4)}. Try again.`);
       }
     } finally {
       setLoading(false);
@@ -58,5 +58,3 @@ export default function FaceVerifyClient() {
     </div>
   );
 }
-
-

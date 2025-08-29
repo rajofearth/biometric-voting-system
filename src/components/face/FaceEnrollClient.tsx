@@ -31,8 +31,8 @@ export default function FaceEnrollClient() {
       }
       const fd = new FormData();
       fd.set("payload", JSON.stringify({ descriptor: d }));
-      const res = await enrollFace({}, fd) as { success?: boolean; error?: string };
-      if (res?.error) {
+      const res = await enrollFace({}, fd);
+      if ('error' in res) {
         toast.error(res.error);
       } else {
         toast.success("Face enrolled successfully");
@@ -53,5 +53,3 @@ export default function FaceEnrollClient() {
     </div>
   );
 }
-
-

@@ -1,6 +1,7 @@
 "use client";
 
 import * as faceapi from "@vladmandic/face-api";
+import { FACE_DETECTION } from "@/lib/constants";
 
 let modelsLoaded = false;
 
@@ -22,8 +23,8 @@ export async function computeDescriptor(video: HTMLVideoElement): Promise<number
 
     const detection = await faceapi
       .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ 
-        inputSize: 224, 
-        scoreThreshold: 0.7 // Higher threshold for better face detection
+        inputSize: FACE_DETECTION.INPUT_SIZE, 
+        scoreThreshold: FACE_DETECTION.SCORE_THRESHOLD
       }))
       .withFaceLandmarks()
       .withFaceDescriptor();
@@ -34,12 +35,9 @@ export async function computeDescriptor(video: HTMLVideoElement): Promise<number
     }
 
     const descriptor = Array.from(detection.descriptor);
-    console.log("Face detected, descriptor length:", descriptor.length);
     return descriptor;
   } catch (error) {
     console.error("Error computing face descriptor:", error);
     return null;
   }
 }
-
-

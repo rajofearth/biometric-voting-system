@@ -15,3 +15,13 @@ export const LoginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
 });
+
+// Face verification types
+export type FaceVerificationResult = 
+  | { success: true; similarity: number }
+  | { success: false; similarity: number }
+  | { error: string };
+
+export type FaceEnrollmentResult = 
+  | { success: true }
+  | { error: string };
